@@ -1,0 +1,26 @@
+rosshutdown;
+clc;
+clear;
+rosinit('192.168.11.123'); % Ip address
+
+% To establish connection
+soundpub=rospublisher('/mobile_base/commands/sound','kobuki_msgs/Sound');
+soundmsg = rosmessage(rostype.kobuki_msgs_Sound);
+soundmsg.Value=6;
+send(soundpub,soundmsg)
+
+%For kinect
+if ismember('/camera/rgb/image_color/compressed',rostopic('list'))
+imsub=rossubscriber('/camera/rgb/image_color/compressed');
+end
+img=receive(imsub);
+figure
+imshow(readImage(img));
+
+%control with teleoperation
+handles.odomSub = rossubscriber('/odom','BufferSize',25);
+receive(handles.odomSub,3);
+handles.laserSub = rossubscriber('/scan','BufferSize',5);
+receive(handles.laserSub,3);
+handles.velPub = rospublisher('/mobile_base/commands/velocity');
+exampleHelperTurtleBotKeyboardControl(handles);
